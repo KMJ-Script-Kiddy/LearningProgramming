@@ -2,25 +2,41 @@
 
 # DNS config
 
+PAC_I='rpm -qi bind'
+PAC_L='rpm -ql bind'
+GREP_LOC='grep named.localhost'
+GREP_LOO='grep named.loopback'
+DIR='xargs dirname'
+NAME='xargs basename'
 
-Localhost() {
-	if locate named.localhost > /dev/null 2>&1; then
-		read -p "정방향 설정 파일이 존재합니다. 설정하시겠습니까?[y/n]" Choice
+Search_Localhost() {
+	echo "정방향 DNS 설정 파일을 탐색합니다."
+	$PAC_I >/dev/null
+	if [[ $? -eq 0 ]]; then
+		echo "파일 경로: $($PAC_I | $GREP_LOC | $DIR)"
+		echo "파일 이름: $($PAC_I | $GREP_LOC | $NAME)"
+		read -p "설정 파일이 존재합니다. 설정하시겠습니까?[y/n]" Choice
 	else
 		Update
 	fi
 }
 
-Loopback() {
-	if locate named.loopback > /dev/null 2>&1; then
-		read -p "역방향 설정 파일이 존재합니다. 설정하시겠습니까?[y/n]" Choice
+Localhost() {
+	cp named.localhost 
+}
+
+Search_Loopback() {
+	echo "역방향 설정 파일을 탐색합니다."
+	if locate named.loopback 2>/dev/null; then
+		read -p "설정 파일이 존재합니다. 설정하시겠습니까?[y/n]" Choice
 	else
 		Update
 	fi
 }
 
 Update() {
-	read -p "파일이 존재하지 않습니다. 검색 목록을 최신화 하시습니까?[y/n]" Choice
+	echo "파일을 검색 중 입니다."
+	read -p "파일을 찾을 수 없습니다. 검색 목록을 최신화 후 재검색하시습니까?[y/n]" Choice
 	case $Choice in
 		Y|y)
 			echo "검색 목록을 최신화 후 재검색합니다."
@@ -48,10 +64,10 @@ Config() {
 	read -p "----- 메뉴를 선택해주세요: " Choice
 	case $Choice in
 		1)
-			Localhost
+			Search_Localhost
 			;;
 		2)
-			Loopback
+			Search_Loopback
 			;;
 		*)
 			echo "잘못 선택하셨습니다."
